@@ -5,7 +5,7 @@ import Quizz from "./components/Quizz";
 
 function App() {
   return (
-    <main>
+    <main className="bg-mainBg">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/quizz" element={<Quizz />} />

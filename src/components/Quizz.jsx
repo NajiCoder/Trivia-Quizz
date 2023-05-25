@@ -1,7 +1,67 @@
+import { useEffect, useState } from "react";
+import { AiOutlineLoading } from "react-icons/ai";
+import { decode } from "html-entities";
+
 export default function Quizz() {
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchQuestions() {
+      const response = await fetch(
+        "https://opentdb.com/api.php?amount=5&category=18&difficulty=easy&type=multiple"
+      );
+      const data = await response.json();
+      const decodedQuestions = data.results.map((question) => {
+        return {
+          ...question,
+          question: decode(question.question),
+        };
+      });
+      setQuestions(decodedQuestions);
+      setLoading(false);
+    }
+    fetchQuestions();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-screen items-center justify-center">
+        <AiOutlineLoading className="text-4xl animate-spin" />
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col bg-mainBg h-screen items-center justify-center space-y-14">
-      Quizz here
-    </div>
+    <main className="flex flex-col items-center justify-center gap-2 h-screen">
+      <div className="flex flex-col h-full items-start mb-0">
+        {questions.map((question, index) => (
+          <div key={index} className="text-center mt-8 items-start">
+            <div className="">
+              <h1 className="text-textColor text-xl font-semibold text-start">
+                {question.question}
+              </h1>
+            </div>
+            <div className="flex gap-4 mt-4">
+              {question.incorrect_answers.map((answer, index) => (
+                <button
+                  key={index}
+                  className="bg-mainBg border-solid border-textColor border-2 text-textColor text-center rounded-md p-2 hover:bg-gray-400"
+                >
+                  {decode(answer)}
+                </button>
+              ))}
+              <button className="bg-rose-200 text-textColor text-center rounded-md p-2">
+                {decode(question.correct_answer)}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+      <button className="bg-btnColor text-white rounded-md p-3 mb-8">
+        Check Answers
+      </button>
+    </main>
   );
 }
