@@ -18,21 +18,16 @@ export default function Quizz() {
           question: decode(question.question),
         };
       });
-      setQuestions(decodedQuestions);
+      const mixedQuestions = mixAnswersRandomly(decodedQuestions);
+      setQuestions(mixedQuestions);
       setLoading(false);
+      console.log(questions);
     }
     fetchQuestions();
   }, []);
 
-  useEffect(() => {
-    if (questions.length > 0) {
-      const mixedQuestions = mixAnswersRandomly(questions);
-      setQuestions(mixedQuestions);
-    }
-  }, [questions]);
-
   function mixAnswersRandomly(questions) {
-    console.log(`Questions Beforre: ${questions}`);
+    console.log(`Questions Before:`, questions);
 
     const mixedQuestions = questions.map((question) => {
       const { correct_answer, incorrect_answers } = question;
@@ -53,7 +48,7 @@ export default function Quizz() {
       };
     });
 
-    console.log(`Questions After: ${mixedQuestions}`);
+    console.log(`Questions After:`, mixedQuestions);
 
     // Return the mixed questions
     return mixedQuestions;
@@ -68,28 +63,48 @@ export default function Quizz() {
     );
   }
 
+  // Handle the click on an answer
+  function handleAnswerClick(index, correctAnswerPosition) {
+    if (index === correctAnswerPosition) {
+      console.log("Correct answer!");
+    } else {
+      console.log("Wrong answer!");
+    }
+  }
+
   return (
     <main className="flex flex-col items-center justify-center gap-2 h-screen">
       <div className="flex flex-col h-full items-start mb-0">
-        {questions.map((question, index) => (
-          <div key={index} className="text-center mt-8 items-start">
+        {questions.map((question, questionIndex) => (
+          <div key={questionIndex} className="text-center mt-8 items-start">
             <div className="">
               <h1 className="text-textColor text-xl font-semibold text-start">
                 {question.question}
               </h1>
             </div>
             <div className="flex gap-4 mt-4 space-x-4">
-              {question.incorrect_answers.map((answer, index) => (
+              {question.answers.map((answer, answerIndex) => (
                 <button
-                  key={index}
-                  className="bg-mainBg border-solid border-textColor border-2 text-textColor text-center rounded-lg p-1 hover:bg-gray-400"
+                  key={answerIndex}
+                  onClick={() => {
+                    handleAnswerClick(
+                      answerIndex,
+                      question.correctAnswerPosition
+                    );
+                  }}
+                  className={
+                    "border-solid border-textColor border-2 text-textColor text-center rounded-lg p-1 hover:bg-gray-400" +
+                    (answerIndex === question.correctAnswerPosition
+                      ? " bg-green-400"
+                      : "bg-mainBg")
+                  } // If the index of the answer is equal to the index of the correct answer, add the bg-green-400 class
                 >
                   {decode(answer)}
                 </button>
               ))}
-              <button className="bg-rose-200 text-textColor text-center rounded-md p-2">
+              {/* <button className="bg-rose-200 text-textColor text-center rounded-md p-2">
                 {decode(question.correct_answer)}
-              </button>
+              </button> */}
             </div>
           </div>
         ))}
@@ -99,4 +114,47 @@ export default function Quizz() {
       </button>
     </main>
   );
+}
+
+{
+  /* <main className="flex flex-col items-center justify-center gap-2 h-screen">
+      <div className="flex flex-col h-full items-start mb-0">
+        {questions.map((question, questionIndex) => (
+          <div key={questionIndex} className="text-center mt-8 items-start">
+            <div className="">
+              <h1 className="text-textColor text-xl font-semibold text-start">
+                {question.question}
+              </h1>
+            </div>
+            <div className="flex gap-4 mt-4 space-x-4">
+              {question.answers.map((answer, answerIndex) => {
+                const answerColor = answerColors.find(
+                  (color) => color.index === answerIndex
+                );
+
+                return (
+                  <button
+                    key={answerIndex}
+                    onClick={() => {
+                      handleAnswerClick(
+                        answerIndex,
+                        question.correctAnswerPosition
+                      );
+                    }}
+                    className={`border-solid border-textColor border-2 text-textColor text-center rounded-lg p-1 hover:bg-gray-400 ${
+                      answerColor ? answerColor.color : ""
+                    }`}
+                  >
+                    {decode(answer)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+      <button className="bg-btnColor text-white rounded-md p-3 mb-8">
+        Check Answers
+      </button>
+    </main> */
 }
