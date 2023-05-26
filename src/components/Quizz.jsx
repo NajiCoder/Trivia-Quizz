@@ -24,6 +24,41 @@ export default function Quizz() {
     fetchQuestions();
   }, []);
 
+  useEffect(() => {
+    if (questions.length > 0) {
+      const mixedQuestions = mixAnswersRandomly(questions);
+      setQuestions(mixedQuestions);
+    }
+  }, [questions]);
+
+  function mixAnswersRandomly(questions) {
+    console.log(`Questions Beforre: ${questions}`);
+
+    const mixedQuestions = questions.map((question) => {
+      const { correct_answer, incorrect_answers } = question;
+
+      const combinedAnswers = [...incorrect_answers, correct_answer];
+      // Shuffle the array
+      const shuffledAnswers = combinedAnswers.sort(() => Math.random() - 0.5);
+      // Find the index of the correct answer in the shuffled array
+      const correctAnswerIndex = shuffledAnswers.findIndex(
+        (answer) => answer === correct_answer
+      );
+
+      // Update the question with the mixed answers and the index of the correct answer
+      return {
+        ...question,
+        answers: shuffledAnswers,
+        correctAnswerPosition: correctAnswerIndex,
+      };
+    });
+
+    console.log(`Questions After: ${mixedQuestions}`);
+
+    // Return the mixed questions
+    return mixedQuestions;
+  }
+
   if (loading) {
     return (
       <div className="flex flex-col h-screen items-center justify-center">
@@ -43,11 +78,11 @@ export default function Quizz() {
                 {question.question}
               </h1>
             </div>
-            <div className="flex gap-4 mt-4">
+            <div className="flex gap-4 mt-4 space-x-4">
               {question.incorrect_answers.map((answer, index) => (
                 <button
                   key={index}
-                  className="bg-mainBg border-solid border-textColor border-2 text-textColor text-center rounded-md p-2 hover:bg-gray-400"
+                  className="bg-mainBg border-solid border-textColor border-2 text-textColor text-center rounded-lg p-1 hover:bg-gray-400"
                 >
                   {decode(answer)}
                 </button>
