@@ -5,6 +5,12 @@ import { decode } from "html-entities";
 export default function Quizz() {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showResults, setShowResults] = useState(false);
+  const [correctAnswers, setCorrectAnswers] = useState(0);
+
+  let BtnName = "Check Answers";
+
+  showResults ? (BtnName = "Play Again") : (BtnName = "Check Answers");
 
   useEffect(() => {
     async function fetchQuestions() {
@@ -21,65 +27,63 @@ export default function Quizz() {
       const mixedQuestions = mixAnswersRandomly(decodedQuestions);
       setQuestions(mixedQuestions);
       setLoading(false);
-      console.log(questions);
     }
     fetchQuestions();
   }, []);
 
   function mixAnswersRandomly(questions) {
-    console.log(`Questions Before:`, questions);
-
     const mixedQuestions = questions.map((question) => {
       const { correct_answer, incorrect_answers } = question;
 
       const combinedAnswers = [...incorrect_answers, correct_answer];
-      // Shuffle the array
       const shuffledAnswers = combinedAnswers.sort(() => Math.random() - 0.5);
-      // Find the index of the correct answer in the shuffled array
       const correctAnswerIndex = shuffledAnswers.findIndex(
         (answer) => answer === correct_answer
       );
-
-      // Update the question with the mixed answers and the index of the correct answer
+      // update the question object with the new answers array and the correct answer position
       return {
         ...question,
         answers: shuffledAnswers,
         correctAnswerPosition: correctAnswerIndex,
-        userAnswer: null, // Added userAnswer property to track the user's selection
+        userAnswer: null, // track the user answer
       };
     });
 
-    console.log(`Questions After:`, mixedQuestions);
-
-    // Return the mixed questions
     return mixedQuestions;
   }
 
-  // Handle the click on an answer
-  function handleAnswerClick(
-    questionIndex,
-    answerIndex,
-    correctAnswerPosition
-  ) {
-    setQuestions((prevQuestions) => {
-      return prevQuestions.map((question, index) => {
-        if (index === questionIndex && question.userAnswer === null) {
-          if (answerIndex === correctAnswerPosition) {
+  function handleAnswerClick(questionIndex, answerIndex) {
+    if (!showResults) {
+      setQuestions((prevQuestions) => {
+        return prevQuestions.map((question, index) => {
+          if (index === questionIndex) {
             return {
               ...question,
               userAnswer: answerIndex,
-            };
-          } else {
-            return {
-              ...question,
-              userAnswer: answerIndex,
-              wrongAnswerClicked: true,
             };
           }
-        }
-        return question;
+          return question;
+        });
       });
+    }
+  }
+
+  function checkAnswers() {
+    setShowResults(true);
+    questions.forEach((question) => {
+      if (question.userAnswer === question.correctAnswerPosition) {
+        setCorrectAnswers((prevCorrectAnswers) => prevCorrectAnswers + 1);
+      }
     });
+  }
+
+  // reset the quiz
+  function playAgain() {
+    console.log("play again");
+    setShowResults(false);
+    setCorrectAnswers(0);
+    const mixedQuestions = mixAnswersRandomly(questions);
+    setQuestions(mixedQuestions);
   }
 
   if (loading) {
@@ -96,7 +100,7 @@ export default function Quizz() {
       <div className="flex flex-col h-full items-start mb-0">
         {questions.map((question, questionIndex) => (
           <div key={questionIndex} className="text-center mt-8 items-start">
-            <div className="">
+            <div>
               <h1 className="text-textColor text-xl font-semibold text-start">
                 {question.question}
               </h1>
@@ -106,20 +110,24 @@ export default function Quizz() {
                 <button
                   key={answerIndex}
                   onClick={() => {
-                    handleAnswerClick(
-                      questionIndex,
-                      answerIndex,
-                      question.correctAnswerPosition
-                    );
+                    handleAnswerClick(questionIndex, answerIndex);
                   }}
                   className={`border-solid border-textColor border-2 text-textColor text-center rounded-lg p-1 hover:shadow-lg ${
-                    question.userAnswer !== null
-                      ? answerIndex === question.correctAnswerPosition
-                        ? "bg-green-400"
-                        : "bg-mainBg"
+                    question.userAnswer !== null &&
+                    !showResults &&
+                    question.userAnswer === answerIndex
+                      ? "bg-slate-500"
+                      : "bg-mainBg"
+                  } ${
+                    showResults &&
+                    question.userAnswer !== null &&
+                    question.userAnswer === answerIndex
+                      ? question.userAnswer === question.correctAnswerPosition
+                        ? "bg-green-500"
+                        : "bg-rose-500"
                       : ""
                   }`}
-                  disabled={question.userAnswer !== null} // Disable button if user has already answered
+                  disabled={question.userAnswer !== null}
                 >
                   {decode(answer)}
                 </button>
@@ -130,9 +138,17 @@ export default function Quizz() {
         ))}
       </div>
 
-      <button className="bg-btnColor text-white rounded-md p-3 mb-8">
-        Check Answers
-      </button>
+      <div className="flex items-center justify-center gap-2 mb-8">
+        {showResults && (
+          <h3>{`Your Score: ${correctAnswers}/${questions.length}`}</h3>
+        )}
+        <button
+          onClick={showResults ? playAgain : checkAnswers}
+          className="bg-btnColor text-white rounded-full pl-5 pr-5 pt-2 pb-2 hover:shadow-lg"
+        >
+          {BtnName}
+        </button>
+      </div>
     </main>
   );
 }
