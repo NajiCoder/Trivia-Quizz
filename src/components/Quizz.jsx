@@ -124,7 +124,7 @@ export default function Quizz() {
                     question.userAnswer === answerIndex
                       ? question.userAnswer === question.correctAnswerPosition
                         ? "bg-green-500"
-                        : "bg-rose-500"
+                        : "bg-rose-300"
                       : ""
                   }`}
                   disabled={question.userAnswer !== null}
@@ -140,7 +140,7 @@ export default function Quizz() {
 
       <div className="flex items-center justify-center gap-2 mb-8">
         {showResults && (
-          <h3>{`Your Score: ${correctAnswers}/${questions.length}`}</h3>
+          <h3 className="text-textColor text-lg font-bold">{`Your Scored ${correctAnswers}/${questions.length} correct answers`}</h3>
         )}
         <button
           onClick={showResults ? playAgain : checkAnswers}
